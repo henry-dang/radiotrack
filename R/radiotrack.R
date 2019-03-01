@@ -1,5 +1,4 @@
 library("plyr")
-###test
 
 triangulate <- function(df, x, y, bearings, group, method = mle,
                         iterations = 999, threshold = 0.0001){
