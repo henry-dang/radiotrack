@@ -1,0 +1,12 @@
+Package: radiotrack
+Type: Package
+Title: Methods for Triangulating 
+Version: 0.0.0.9000
+Author: Henry Dang
+Maintainer: Henry Dang <henryngocdang@gmail.com>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL (>=3)
+Encoding: UTF-8
+LazyData: true
+Imports: plyr (>= 1.8.4)
