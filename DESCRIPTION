@@ -1,11 +1,11 @@
 Package: radiotrack
 Type: Package
-Title: Methods for Triangulating 
+Title: Methods for Triangulation in Wildlife Radio-Telemetry Studies 
 Version: 0.0.0.9000
 Author: Henry Dang
-Maintainer: Henry Dang <henryngocdang@gmail.com>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Maintainer: Henry Dang <henryngocdang at gmail.com>
+Description: Several methods for triangulating the location of a signal based on 
+    the paper "On Finding the Source of a Signal" by Lenth (1972). 
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
