@@ -1,8 +1,9 @@
 \name{triangulate}
 \alias{triangulate}
-\title{Estimate location of a signal using tracking data}
+\title{Estimate location of a signal from tracking data}
 \usage{
-triangulate(df, x, y, bearings, group, method, iterations, threshold)
+triangulate(df, x, y, bearings, group, method,
+    iterations, threshold)
 }
 \arguments{
   \item{df}{Dataframe}
@@ -26,11 +27,11 @@ triangulate(df, x, y, bearings, group, method, iterations, threshold)
 This function uses tracking data to compute the locaton of a radiotransmitter using either the maximum likelihood estimator, Huber, or Andrews method, as specified by the user.  The user will need to also specify a column containing the unique identifer that the function will use to group the tracking data and perform calculations on. A dataframe containing the X- and Y-Coordinate for the location of the radiotransmitter will be returned, along with the group identifier and method used. If the function fails to compute a result for a group, an error message will be displayed in the X- and Y-Coordinate columns of the returned dataset.
 }
 \examples{
-\dontrun{
-results <- triangulate(df = "data", x = "X_Coordinate", y = "Y_Coordinate", bearings = "Directions",
-group = "Triangulation_Series")
-print(results)
-}
+# results <- triangulate(df = "data", x = "X_Coordinate",
+#     y = "Y_Coordinate", bearings = "Directions",
+#     group = "Triangulation_Series")
+
+# print(results)
 }
 
 \references{
