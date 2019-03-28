@@ -2,7 +2,6 @@ library("plyr")
 
 triangulate <- function(df, x, y, bearings, group, method = mle,
                         iterations = 999, threshold = 0.0001){
-  group <- df[, group, drop = FALSE]
   df <- plyr::ddply(.data=df, .variables=group, .fun=method,
               x, y, bearings, iterations = iterations, threshold = threshold)
 }
