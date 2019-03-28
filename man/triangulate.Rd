@@ -24,7 +24,7 @@ triangulate(df, x, y, bearings, group, method,
   \item{threshold}{Numeric specifying the precision of the calculations. Default is 0.0001.}
 }
 \description{
-This function uses tracking data to compute the locaton of a radiotransmitter using either the maximum likelihood estimator, Huber, or Andrews method, as specified by the user.  The user will need to also specify a column containing the unique identifer that the function will use to group the tracking data and perform calculations on. A dataframe containing the X- and Y-Coordinate for the location of the radiotransmitter will be returned, along with the group identifier and method used. If the function fails to compute a result for a group, an error message will be displayed in the X- and Y-Coordinate columns of the returned dataset.
+This function uses tracking data to compute the locaton of a radiotransmitter using either the maximum likelihood estimator, Huber, or Andrews method, as specified by the user.  The user will need to also specify a column containing the unique identifer that the function will use to group the tracking data and perform calculations on. A dataframe containing the X- and Y-Coordinate for the location of the radiotransmitter will be returned, along with the group identifier and method used. If the function fails to compute a result for a group, an error message will be displayed in the X- and Y-Coordinate columns of the returned datasframe.
 }
 \examples{
 # results <- triangulate(df = "data", x = "X_Coordinate",
