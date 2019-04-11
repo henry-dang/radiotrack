@@ -14,6 +14,13 @@ mle <- function(df, x, y, bearings, group, iterations, threshold){
   x <- df[, x, drop = FALSE]
   bearings <- df[, bearings, drop = FALSE]
 
+  if(max(bearings) - min(bearings) == 0){
+   iterations <- 0
+    counter <- iterations + 1
+    x <- "Bearings cannot all be the same"
+    y <- "Bearings cannot all be the same"
+  }else{
+
   ### Using Eq. 2.6, obtain an initial value for x and y (coordinates)
   ### by ignoring the asteriks on s* and c* and assuming all d.i are equal.
   theta <- (pi / 180 * (90 - bearings))
@@ -32,6 +39,7 @@ mle <- function(df, x, y, bearings, group, iterations, threshold){
   y <- as.numeric(0)
 
   counter <- as.numeric(0)
+
 
   ### Use the initial x and y values to calculate interim values. Then iterate
   ### until x and y change by a negligible amount
@@ -64,7 +72,8 @@ mle <- function(df, x, y, bearings, group, iterations, threshold){
       break()
     }
   }
-  results <- data.frame("X_Coordinate"= x,
+  }
+  results <- data.frame("X_Coordinate" = x,
                         "Y_Coordinate" = y,
                         "Iterations" = counter)
 }
