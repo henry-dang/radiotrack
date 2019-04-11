@@ -5,8 +5,10 @@ Version: 0.0.0.9000
 Author: Henry Dang
 Maintainer: Henry Dang <henryngocdang@gmail.com>
 Description: Several methods for triangulating the location of a signal based on 
-    the paper "On Finding the Source of a Signal" by Lenth (1972). 
+    the paper On Finding the Source of a Signal by Lenth (1972). 
 License: GPL (>=3)
+URL: https://github.com/henry-dang/radiotrack
+BugReports: https://github.com/henry-dang/radiotrack/issues
 Encoding: UTF-8
 LazyData: true
 Imports: plyr (>= 1.8.4)
