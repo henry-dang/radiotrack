@@ -8,17 +8,17 @@ triangulate <- function(df, x, y, bearings, group, method = mle,
 
 # MLE method ------------------------------------------
 
-mle <- function(df, x, y, bearings, group, iterations, threshold){
+mle <- function(df, x, y, bearings, iterations, threshold){
 
   y <- df[, y, drop = FALSE]
   x <- df[, x, drop = FALSE]
   bearings <- df[, bearings, drop = FALSE]
 
   if(max(bearings) - min(bearings) == 0){
-   iterations <- 0
-    counter <- iterations + 1
-    x <- "Bearings cannot all be the same"
-    y <- "Bearings cannot all be the same"
+    counter <- 0
+    x <- NA
+    y <- NA
+    error <- "Bearings cannot all be the same"
   }else{
 
   ### Using Eq. 2.6, obtain an initial value for x and y (coordinates)
@@ -67,25 +67,36 @@ mle <- function(df, x, y, bearings, group, iterations, threshold){
     counter <- counter + 1
 
     if(is.nan(x) | is.nan(y) | counter == iterations){
-      x <- "Failed"
-      y <- "Failed"
+      x <- NA
+      y <- NA
+      error <- "Computation failed"
       break()
     }
+    error <- ""
   }
   }
   results <- data.frame("X_Coordinate" = x,
                         "Y_Coordinate" = y,
+                        "Error" = error,
                         "Iterations" = counter)
 }
 
 
 # Huber method ------------------------------------------
 
-huber <- function(df, x, y, bearings, group, iterations, threshold){
+huber <- function(df, x, y, bearings, iterations, threshold){
 
   y <- df[, y, drop = FALSE]
   x <- df[, x, drop = FALSE]
   bearings <- df[, bearings, drop = FALSE]
+
+
+  if(max(bearings) - min(bearings) == 0){
+    counter <- 0
+    x <- NA
+    y <- NA
+    error <- "Bearings cannot all be the same"
+  }else{
 
   ### Using Eq. 4.7, obtain an initial value for x and y (coordinates)
   ### by ignoring the asteriks on s* and c* and assuming w.i = 1 and all d.i
@@ -155,25 +166,36 @@ huber <- function(df, x, y, bearings, group, iterations, threshold){
 
     counter <- counter + 1
 
-    if(is.nan(x)| is.nan(y) | counter == iterations){
-      x <- "Failed"
-      y <- "Failed"
+    if(is.nan(x) | is.nan(y) | counter == iterations){
+      x <- NA
+      y <- NA
+      error <- "Computation failed"
       break()
     }
+    error <- ""
+  }
   }
   results <- data.frame("X_Coordinate"= x,
                         "Y_Coordinate" = y,
+                        "Error" = error,
                         "Iterations" = counter)
 }
 
 
 # Andrews method ------------------------------------------
 
-andrews <- function(df, x, y, bearings, group, iterations, threshold){
+andrews <- function(df, x, y, bearings, iterations, threshold){
 
   y <- df[, y, drop = FALSE]
   x <- df[, x, drop = FALSE]
   bearings <- df[, bearings, drop = FALSE]
+
+  if(max(bearings) - min(bearings) == 0){
+    counter <- 0
+    x <- NA
+    y <- NA
+    error <- "Bearings cannot all be the same"
+  }else{
 
   ### Using Eq. 4.7, obtain an initial value for x and y (coordinates)
   ### by ignoring the asteriks on s* and c* and assuming w.i = 1 and all d.i
@@ -246,14 +268,18 @@ andrews <- function(df, x, y, bearings, group, iterations, threshold){
 
     counter <- counter + 1
 
-    if(is.nan(x)| is.nan(y) | counter == iterations){
-      x <- "Failed"
-      y <- "Failed"
+    if(is.nan(x) | is.nan(y) | counter == iterations){
+      x <- NA
+      y <- NA
+      error <- "Computation failed"
       break()
     }
+    error <- ""
+  }
   }
   results <- data.frame("X_Coordinate"= x,
                         "Y_Coordinate" = y,
+                        "Error" = error,
                         "Iterations" = counter)
 }
 
