@@ -284,3 +284,61 @@ andrews <- function(df, x, y, bearings, iterations, threshold){
 }
 
 
+# Arithmetic method ------------------------------------------
+
+arithmetic <- function(df, x, y, bearings){
+  df$setnum <- 1:nrow(df)
+  df <- unite(data=df, col="setnum/x/y/bearings", "setnum", x, y, bearings, sep="/")
+  df <- pair.matrix(elements = df$setnum, ordered=FALSE, self.pairs=FALSE)
+  df <- as.data.frame(df, optional=FALSE, stringsAsFactors=FALSE)
+  df <- separate(data=df, V1, into=c("SetNum.1", "x.1", "y.1", "bearings.1"),
+                 sep="/", remove=TRUE, convert=TRUE)
+  df <- separate(data=df, V2, into=c("SetNum.2", "x.2", "y.2", "bearings.2"),
+                 sep="/", remove=TRUE, convert=TRUE)
+  system.solve <- function(df, bearings.1=df$bearings.1, bearings.2=df$bearings.2,
+                           x.1=df$x.1, x.2=df$x.2, y.1=df$y.1, y.2=df$y.2){
+    theta.1 <- (pi / 180 * (90 - bearings.1))
+    theta.2 <- (pi / 180 * (90 - bearings.2))
+    x.1 <- x.1
+    y.1 <- y.1
+    x.2 <- x.2
+    y.2 <- y.2
+    a <- array(c(tan(theta.1), tan(theta.2), -1, -1), dim = (c(2,2)))
+    c.1 <- x.1*tan(theta.1) - y.1
+    c.2 <- x.2*tan(theta.2) - y.2
+    b <- c(c.1, c.2)
+    xy <- solve(a, b)
+    x <- xy[1]
+    y <- xy[2]
+    error <- ""
+    if((0<bearings.1 & bearings.1<90 & x<x.1 & y<y.1) |
+       (0<bearings.2 & bearings.2<90 & x<x.2 & y<y.2)){
+      x <- NA
+      y <- NA
+    }else if((90<bearings.1 & bearings.1<180 & x<x.1 & y>y.1) |
+             (90<bearings.2 & bearings.2<180 & x<x.2 & y>y.2)){
+      x <- NA
+      y <- NA
+    }else if((180<bearings.1 & bearings.1<270 & x>x.1 & y>y.1) |
+             (180<bearings.2 & bearings.2<270 & x>x.2 & y>y.2)){
+      x <- NA
+      y <- NA
+    }else if((270<bearings.1 & bearings.1<360 & x>x.1 & y<y.1) |
+             (270<bearings.2 & bearings.2<360 & x>x.2 & y<y.2)){
+      x <- NA
+      y <- NA
+    }
+    data.frame("X_Coordinate" = x,
+               "Y_Coordinate" = y,
+               "Error" = error)
+  }
+  results <- adply(.data=df, .margins=1, .fun=system.solve, .expand=TRUE)
+  error <- ""
+  if(any(is.na(results$X_Coordinate)) & any(is.na(results$Y_Coordinate))){
+    error <- "Not all bearings intersect"
+  }
+  results <- data.frame("X_Coordinate" = mean(results$X_Coordinate, na.rm=TRUE),
+                        "Y_Coordinate" = mean(results$Y_Coordinate, na.rm=TRUE),
+                        "Error" = error)
+
+}
