@@ -1,6 +1,0 @@
-lenth_sample <- data.frame("Obs_point" = c(1, 2, 3, 4, 5, 7, 8),
-                             "X_Coordinate" = c(9.0, 9.4, 9.95, 8.7, 8.07, 4.4, 1.85),
-                             "Y_Coordinate" = c(3.2, 5.5, 9.05, 8.7, 9.7, 8.9, 5.25),
-                             "Direction" = c(234, 215, 196, 193, 188, 160, 118))
-
-source(lenth_Sample)
