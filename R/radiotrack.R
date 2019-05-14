@@ -286,7 +286,8 @@ andrews <- function(df, x, y, bearings, iterations, threshold){
 
 # Arithmetic method ------------------------------------------
 
-arithmetic <- function(df, x, y, bearings){
+arithmetic <- function(df, x, y, bearings, iterations, threshold){
+
   df$setnum <- 1:nrow(df)
   df <- unite(data=df, col="setnum/x/y/bearings", "setnum", x, y, bearings, sep="/")
   df <- pair.matrix(elements = df$setnum, ordered=FALSE, self.pairs=FALSE)
@@ -295,7 +296,8 @@ arithmetic <- function(df, x, y, bearings){
                  sep="/", remove=TRUE, convert=TRUE)
   df <- separate(data=df, V2, into=c("SetNum.2", "x.2", "y.2", "bearings.2"),
                  sep="/", remove=TRUE, convert=TRUE)
-  system.solve <- function(df, bearings.1=df$bearings.1, bearings.2=df$bearings.2,
+
+  solveintersects <- function(df, bearings.1=df$bearings.1, bearings.2=df$bearings.2,
                            x.1=df$x.1, x.2=df$x.2, y.1=df$y.1, y.2=df$y.2){
     theta.1 <- (pi / 180 * (90 - bearings.1))
     theta.2 <- (pi / 180 * (90 - bearings.2))
@@ -329,16 +331,211 @@ arithmetic <- function(df, x, y, bearings){
       y <- NA
     }
     data.frame("X_Coordinate" = x,
-               "Y_Coordinate" = y,
-               "Error" = error)
+               "Y_Coordinate" = y)
   }
   results <- adply(.data=df, .margins=1, .fun=system.solve, .expand=TRUE)
   error <- ""
   if(any(is.na(results$X_Coordinate)) & any(is.na(results$Y_Coordinate))){
     error <- "Not all bearings intersect"
   }
-  results <- data.frame("X_Coordinate" = mean(results$X_Coordinate, na.rm=TRUE),
-                        "Y_Coordinate" = mean(results$Y_Coordinate, na.rm=TRUE),
-                        "Error" = error)
+  results <- adply(.data=df, .margins=1, .fun=solveintersects, .expand=TRUE)
+  error <- ""
+  if(any(is.na(results$X_Coordinate)) & any(is.na(results$Y_Coordinate))){
+    results <- results[!(is.na(results$X_Coordinate) &
+                           is.na(results$Y_Coordinate)), ]
+    results <- results[!(is.infinite(results$X_Coordinate) &
+                           is.infinite(results$Y_Coordinate)), ]
+    error <- "Not all bearings intersect"
+  }else if(any(is.infinite(results$X_Coordinate)) & any(is.infinite(results$Y_Coordinate))){
+    results <- results[!(is.infinite(results$X_Coordinate) &
+                           is.infinite(results$Y_Coordinate)), ]
+    error <- "Parallel bearings"
+  }
 
+  x <- mean(results$X_Coordinate, na.rm=FALSE)
+  y <- mean(results$Y_Coordinate, na.rm=FALSE)
+
+  if(any(is.nan(x)) & any(is.nan(y))){
+    x <- NA
+    y <- NA
+    error <- "No bearings intersect"
+  }
+  results <- data.frame("X_Coordinate" = x,
+                        "Y_Coordinate" = y,
+                        "Error" = error)
+}
+
+
+# Geometric method ------------------------------------------
+
+geometric <- function(df, x, y, bearings, iterations, threshold){
+
+  df$setnum <- 1:nrow(df)
+  df <- unite(data=df, col="setnum/x/y/bearings", "setnum", x, y, bearings, sep="/")
+  df <- pair.matrix(elements = df$setnum, ordered=FALSE, self.pairs=FALSE)
+  df <- as.data.frame(df, optional=FALSE, stringsAsFactors=FALSE)
+  df <- separate(data=df, V1, into=c("SetNum.1", "x.1", "y.1", "bearings.1"),
+                 sep="/", remove=TRUE, convert=TRUE)
+  df <- separate(data=df, V2, into=c("SetNum.2", "x.2", "y.2", "bearings.2"),
+                 sep="/", remove=TRUE, convert=TRUE)
+
+  solveintersects <- function(df, bearings.1=df$bearings.1, bearings.2=df$bearings.2,
+                              x.1=df$x.1, x.2=df$x.2, y.1=df$y.1, y.2=df$y.2){
+    theta.1 <- (pi / 180 * (90 - bearings.1))
+    theta.2 <- (pi / 180 * (90 - bearings.2))
+    x.1 <- x.1
+    y.1 <- y.1
+    x.2 <- x.2
+    y.2 <- y.2
+    a <- array(c(tan(theta.1), tan(theta.2), -1, -1), dim = (c(2,2)))
+    c.1 <- x.1*tan(theta.1) - y.1
+    c.2 <- x.2*tan(theta.2) - y.2
+    b <- c(c.1, c.2)
+    xy <- solve(a, b)
+    x <- xy[1]
+    y <- xy[2]
+    error <- ""
+    if((0<bearings.1 & bearings.1<90 & x<x.1 & y<y.1) |
+       (0<bearings.2 & bearings.2<90 & x<x.2 & y<y.2)){
+      x <- NA
+      y <- NA
+    }else if((90<bearings.1 & bearings.1<180 & x<x.1 & y>y.1) |
+             (90<bearings.2 & bearings.2<180 & x<x.2 & y>y.2)){
+      x <- NA
+      y <- NA
+    }else if((180<bearings.1 & bearings.1<270 & x>x.1 & y>y.1) |
+             (180<bearings.2 & bearings.2<270 & x>x.2 & y>y.2)){
+      x <- NA
+      y <- NA
+    }else if((270<bearings.1 & bearings.1<360 & x>x.1 & y<y.1) |
+             (270<bearings.2 & bearings.2<360 & x>x.2 & y<y.2)){
+      x <- NA
+      y <- NA
+    }
+    data.frame("X_Coordinate" = x,
+               "Y_Coordinate" = y)
+  }
+
+  results <- adply(.data=df, .margins=1, .fun=system.solve, .expand=TRUE)
+  error <- ""
+  if(any(is.na(results$X_Coordinate)) & any(is.na(results$Y_Coordinate))){
+    error <- "Not all bearings intersect"
+  }
+  results <- adply(.data=df, .margins=1, .fun=solveintersects, .expand=TRUE)
+  error <- ""
+  if(any(is.na(results$X_Coordinate)) & any(is.na(results$Y_Coordinate))){
+    results <- results[!(is.na(results$X_Coordinate) &
+                           is.na(results$Y_Coordinate)), ]
+    results <- results[!(is.infinite(results$X_Coordinate) &
+                           is.infinite(results$Y_Coordinate)), ]
+    error <- "Not all bearings intersect"
+  }else if(any(is.infinite(results$X_Coordinate)) & any(is.infinite(results$Y_Coordinate))){
+    results <- results[!(is.infinite(results$X_Coordinate) &
+                           is.infinite(results$Y_Coordinate)), ]
+    error <- "Parallel bearings"
+  }
+
+  x <- log10(abs(results$X_Coordinate)) * sign(results$X_Coordinate)
+  x <- mean(x, na.rm=FALSE)
+  x <- 10^(abs(x)) * sign(x)
+  y <- log10(abs(results$Y_Coordinate)) * sign(results$Y_Coordinate)
+  y <- mean(y, na.rm=FALSE)
+  y <- 10^(abs(y)) * sign(y)
+
+  if(any(is.nan(x)) & any(is.nan(y))){
+    x <- NA
+    y <- NA
+    error <- "No bearings intersect"
+  }
+  results <- data.frame("X_Coordinate" = x,
+                        "Y_Coordinate" = y,
+                        "Error" = error)
+}
+
+
+# Best Biangulation method ------------------------------------------
+
+bestbiang1 <- function(df, x, y, bearings, iterations, threshold){
+
+  df$setnum <- 1:nrow(df)
+  if(bearings == 360){
+    bearings <- 0
+  }
+  df <- unite(data=df, col="setnum/x/y/bearings", "setnum", x, y, bearings, sep="/")
+  df <- pair.matrix(elements = df$setnum, ordered=FALSE, self.pairs=FALSE)
+  df <- as.data.frame(df, optional=FALSE, stringsAsFactors=FALSE)
+  df <- separate(data=df, V1, into=c("SetNum.1", "x.1", "y.1", "bearings.1"),
+                 sep="/", remove=TRUE, convert=TRUE)
+  df <- separate(data=df, V2, into=c("SetNum.2", "x.2", "y.2", "bearings.2"),
+                 sep="/", remove=TRUE, convert=TRUE)
+
+  solveintersects <- function(df, bearings.1=df$bearings.1, bearings.2=df$bearings.2,
+                           x.1=df$x.1, x.2=df$x.2, y.1=df$y.1, y.2=df$y.2){
+    theta.1 <- (pi / 180 * (90 - bearings.1))
+    theta.2 <- (pi / 180 * (90 - bearings.2))
+    x.1 <- x.1
+    y.1 <- y.1
+    x.2 <- x.2
+    y.2 <- y.2
+    x <- (x.1*tan(theta.1) - x.2*tan(theta.2) + y.2 - y.1)/(tan(theta.1) - tan(theta.2))
+    y <- ((x.2-x.1)*tan(theta.1)*tan(theta.2) - y.2*tan(theta.1) + y.1*tan(theta.2))/
+      (tan(theta.2)-tan(theta.1))
+    if((0<bearings.1 & bearings.1<90 & x<x.1 & y<y.1) |
+       (0<bearings.2 & bearings.2<90 & x<x.2 & y<y.2)){
+      x <- NA
+      y <- NA
+    }else if((90<bearings.1 & bearings.1<180 & x<x.1 & y>y.1) |
+             (90<bearings.2 & bearings.2<180 & x<x.2 & y>y.2)){
+      x <- NA
+      y <- NA
+    }else if((180<bearings.1 & bearings.1<270 & x>x.1 & y>y.1) |
+             (180<bearings.2 & bearings.2<270 & x>x.2 & y>y.2)){
+      x <- NA
+      y <- NA
+    }else if((270<bearings.1 & bearings.1<360 & x>x.1 & y<y.1) |
+             (270<bearings.2 & bearings.2<360 & x>x.2 & y<y.2)){
+      x <- NA
+      y <- NA
+    }
+
+    bearingdiff <- abs(bearings.1 - bearings.2)
+    if(bearingdiff > 180){
+      bearingdiff <- 360 - bearingdiff
+    }
+    data.frame("X_Coordinate" = x,
+               "Y_Coordinate" = y,
+               "Bearing.Diff" = bearingdiff,
+               "SetNum1" = df$SetNum.1,
+               "SetNum2" = df$SetNum.2)
+  }
+
+  results <- adply(.data=df, .margins=1, .fun=solveintersects, .expand=TRUE)
+  results$Error <- ""
+
+  if(all(!is.finite(results$X_Coordinate)) & all(!is.finite(results$Y_Coordinate))){
+    results$X_Coordinate <- NA
+    results$Y_Coordinate <- NA
+  }else if(any(!is.finite(results$X_Coordinate)) & any(!is.finite(results$Y_Coordinate)) &
+           any(is.finite(results$X_Coordinate)) & any(is.finite(results$Y_Coordinate))){
+    print("CONDITION MET")
+    results <- results[!(is.infinite(results$X_Coordinate) &
+                           is.infinite(results$Y_Coordinate)), ]
+    results <- results[!(is.na(results$X_Coordinate) &
+                           is.na(results$Y_Coordinate)), ]
+    results$Error <- "Not all bearings intersect"
+  }
+
+  if(all(is.na(results$X_Coordinate)) | all(is.na(results$Y_Coordinate))){
+    results$Error <- "No bearings intersect"
+    results <- results[1, ]
+  }else{
+    closestbearings <- abs(90-results$Bearing.Diff)
+    closestbearings <- which(closestbearings == min(closestbearings, na.rm=TRUE))
+    results <- results[c(closestbearings), ]
+  }
+
+  results <- data.frame("X_Coordinate" = results$X_Coordinate,
+                        "Y_Coordinate" = results$Y_Coordinate,
+                        "Bearing.Diff" = results$Bearing.Diff,
+                        "Error" = results$Error)
 }
