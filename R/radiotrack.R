@@ -299,7 +299,8 @@ arithmetic <- function(df, x, y, bearings, iterations, threshold){
   df <- separate(data=df, V2, into=c("SetNum.2", "x.2", "y.2", "bearings.2"),
                  sep="/", remove=TRUE, convert=TRUE)
 
-  ###
+  ### Use equation 4.1 and 4.2 in White and Garrott (1990) to solve for the x and y coordinate
+  ### of the intersections
   solveintersects <- function(df, bearings.1=df$bearings.1, bearings.2=df$bearings.2,
                            x.1=df$x.1, x.2=df$x.2, y.1=df$y.1, y.2=df$y.2){
     theta.1 <- (pi / 180 * (90 - bearings.1))
@@ -307,7 +308,9 @@ arithmetic <- function(df, x, y, bearings, iterations, threshold){
     x <- (x.1*tan(theta.1) - x.2*tan(theta.2) + y.2 - y.1)/(tan(theta.1) - tan(theta.2))
     y <- ((x.2-x.1)*tan(theta.1)*tan(theta.2) - y.2*tan(theta.1) + y.1*tan(theta.2))/
       (tan(theta.2)-tan(theta.1))
-    error <- ""
+
+    ### The solution to the equations (i.e. the intersections) must be in the direction
+    ### of the bearings.
     if((0<bearings.1 & bearings.1<90 & x<x.1 & y<y.1) |
        (0<bearings.2 & bearings.2<90 & x<x.2 & y<y.2)){
       x <- NA
@@ -437,7 +440,7 @@ geometric <- function(df, x, y, bearings, iterations, threshold){
 
 # Best Biangulation method ------------------------------------------
 
-bestbiang1 <- function(df, x, y, bearings, iterations, threshold){
+bestbiang <- function(df, x, y, bearings, iterations, threshold){
 
   df$setnum <- 1:nrow(df)
   if(bearings == 360){
@@ -488,6 +491,9 @@ bestbiang1 <- function(df, x, y, bearings, iterations, threshold){
   results <- adply(.data=df, .margins=1, .fun=solveintersects, .expand=TRUE)
   results$Error <- ""
 
+  ### If all of the X- and Y-Coordinates are Inf, NaN, or NA, which means none of the bearings
+  ### intersect, then replace them with NA so that it can be tested later. Otherwise, if there
+  ### are only a few non-finite values, then remove them.
   if(all(!is.finite(results$X_Coordinate)) & all(!is.finite(results$Y_Coordinate))){
     results$X_Coordinate <- NA
     results$Y_Coordinate <- NA
